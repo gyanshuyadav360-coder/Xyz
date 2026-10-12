@@ -292,54 +292,47 @@
       const amt = tempRechargeAmt;
       const name = document.getElementById('rname').value.trim();
       const utr = document.getElementById('rutr').value.trim();
-      const file = document.getElementById('rfile').files[0];
       const btn = document.getElementById('subRecBtn');
 
       btn.innerText = "भेजा जा रहा है...";
       btn.disabled = true;
 
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const imgUrl = evt.target.result;
-        const caption = `🔔 नया रिचार्ज अनुरोध!\n📱 यूजर: ${currentSession}\n👤 नाम: ${name}\n💰 राशि: ₹${amt}\n🔢 UTR: ${utr}`;
+      const text = `🔔 नया रिचार्ज अनुरोध!\n📱 यूजर: ${currentSession}\n👤 नाम: ${name}\n💰 राशि: ₹${amt}\n🔢 UTR: ${utr}`;
 
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: ADMIN_CHAT_ID,
-            photo: imgUrl,
-            caption: caption,
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  { text: "✅ Approve", callback_data: `app_${currentSession}_${amt}` },
-                  { text: "❌ Disapprove", callback_data: `dis_${currentSession}` }
-                ]
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ADMIN_CHAT_ID,
+          text: text,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: "✅ Approve", callback_data: `app_${currentSession}_${amt}` },
+                { text: "❌ Disapprove", callback_data: `dis_${currentSession}` }
               ]
-            }
-          })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if(data.ok) {
-            alert('रिचार्ज अनुरोध सफलतापूर्वक टेलीग्राम पर भेज दिया गया है!');
-            currentTab = 'home';
-            rechargeStep = 1;
-            renderMain();
-          } else {
-            alert('टेलीग्राम एरर: ' + (data.description || 'failed'));
-            btn.innerText = "रिचार्ज सबमिट करें";
-            btn.disabled = false;
+            ]
           }
         })
-        .catch(err => {
-          alert('नेटवर्क एरर!');
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.ok) {
+          alert('रिचार्ज अनुरोध सफलतापूर्वक टेलीग्राम पर भेज दिया गया है!');
+          currentTab = 'home';
+          rechargeStep = 1;
+          renderMain();
+        } else {
+          alert('टेलीग्राम एरर: ' + (data.description || 'failed'));
           btn.innerText = "रिचार्ज सबमिट करें";
           btn.disabled = false;
-        });
-      };
-      reader.readAsDataURL(file);
+        }
+      })
+      .catch(err => {
+        alert('नेटवर्क एरर!');
+        btn.innerText = "रिचार्ज सबमिट करें";
+        btn.disabled = false;
+      });
     }
 
     function handleWithSubmit(e) {
